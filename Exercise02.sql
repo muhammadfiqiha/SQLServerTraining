@@ -56,7 +56,7 @@ ON a.SalesPersonID = b.BusinessEntityID;
 
 -- SECTION 3
 -- 9. Count the number of Products based on ProductLine
-SELECT COUNT(ProductLine) 
+SELECT COUNT(ProductLine) as NumberOfProducts
 FROM Production.Product;
 
 -- 10. Find the average of list price of product for each subcategory id
