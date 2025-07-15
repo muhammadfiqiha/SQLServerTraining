@@ -1,3 +1,4 @@
+-- SECTION 1
 -- List Product name and their list prices from the production product table where the list price is greater than 1000
 SELECT Name, ListPrice 
 FROM Production.Product 
@@ -27,3 +28,5 @@ WHERE BirthDate = (
 	OR BirthDate = (
 	SELECT MIN(BirthDate) FROM HumanResources.Employee
 	);
+
+-- SECTION 2
