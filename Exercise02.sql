@@ -17,3 +17,13 @@ ORDER BY ListPrice DESC;
 SELECT Name
 FROM Production.Product
 WHERE Name like 'b%';
+
+-- display oldest and youngest employee
+SELECT BusinessEntityID, NationalIDNumber, LoginID, JobTitle, BirthDate
+FROM HumanResources.Employee
+WHERE BirthDate = (
+	SELECT MAX(BirthDate) FROM HumanResources.Employee
+	) 
+	OR BirthDate = (
+	SELECT MIN(BirthDate) FROM HumanResources.Employee
+	);
