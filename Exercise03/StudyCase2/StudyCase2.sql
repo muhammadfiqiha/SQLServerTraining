@@ -44,7 +44,7 @@ CREATE TABLE ParticipationRecord (
 	EmployeeID INT NOT NULL,
 
 	FOREIGN KEY (SessionID) REFERENCES TrainingSession(SessionID),
-	FOREIGN KEY (EmployeeID) REFERENCES ParticipationRecord(EmployeeID),
+	FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
 );
 
 -- Training Session
