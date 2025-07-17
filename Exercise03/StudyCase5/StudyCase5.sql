@@ -43,10 +43,11 @@ ADD FOREIGN KEY (CarVIN) REFERENCES Car(CarVIN);
 -- Claims
 CREATE TABLE WarrantyClaim (
 	ClaimId INT PRIMARY KEY IDENTITY(1,1),
-	ProblemDesc TEXT,
 	ServiceCenter VARCHAR(20),
 	RepairDate DATE,
 	CostCovered MONEY,
+	ClaimStatus VARCHAR(10),
+	IssueReported TEXT,
 	CustomerId INT NOT NULL,
 	WarrantyId INT NOT NULL,
 
