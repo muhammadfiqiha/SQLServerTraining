@@ -20,8 +20,6 @@ LEFT JOIN
 ON
 	ca.AgreementId = a.AgreementId; 
 
-SELECT * FROM vw_SalesReport;
-
 -- Credit Status
 CREATE VIEW vw_CreditStatus
 AS
@@ -35,8 +33,6 @@ SELECT
 FROM
 	Credit;
 
-SELECT * FROM vw_CreditStatus;
-
 -- Car Available List
 CREATE VIEW vw_AvailableCarList
 AS
@@ -49,5 +45,3 @@ FROM
 	DealerCarList
 WHERE
 	Stock > 0;
-
-SELECT * FROM vw_AvailableCarList;

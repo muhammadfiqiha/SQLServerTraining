@@ -21,6 +21,4 @@ BEGIN
 	SET @fixedprice = @price * (1 + (@taxrate / 100) - (@discountrate / 100))
 
 	RETURN @fixedprice
-END
-
-SELECT dbo.ufnGetCarEstimatedFinalPrice(1, 2, 10) AS EstimatedPrice;
+END;

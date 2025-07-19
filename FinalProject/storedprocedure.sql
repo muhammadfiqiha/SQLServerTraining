@@ -14,18 +14,3 @@ BEGIN
 
 	SET @customerid = SCOPE_IDENTITY();
 END;
-
--- Run the stored procedures 
-DECLARE @newcustomerid int -- RUN FROM HERE
-
-EXEC uspRegisterCustomer
-	@firstname = 'Thomas',
-	@lastname = 'Edison',
-	@phonenumber = '089212848793',
-	@address = 'Leipsich Street no. 18',
-	@age = 51,
-	@customerid = @newcustomerid 
-OUTPUT
-
--- Display the new customer
-SELECT * FROM Customer WHERE CustomerId = @newcustomerid; -- TO HERE IN 1 BLOCK TO SEE THE NEW CUSTOMER
