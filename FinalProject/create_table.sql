@@ -6,17 +6,21 @@ CREATE TABLE Dealer (
 	Region varchar(15) not null,
 	City varchar(15) not null,
 	DealerName varchar(15) not null,
+	DealerTaxRate int not null,
 );
 
-CREATE TABLE Car (
+CREATE TABLE CarModel (
+	ModelId int identity(1,1) primary key,
+	BasePriceMil money not null,
+	FuelType varchar(12) not null,
+);
+
+CREATE TABLE CarUnit (
 	CarId int identity(1,1) primary key,
 	CarVIN nvarchar(15) unique,
 	ModelId int not null,
-	BasePrice money not null,
 	DealerId int not null,
-	WarrantyId int not null,
-
-	FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId),
+	IsSold bit not null,
 );
 
 CREATE TABLE Employee (
@@ -32,11 +36,8 @@ CREATE TABLE Employee (
 CREATE TABLE SalesPerson (
 	SalespersonId int identity(1,1) primary key,
 	SalespersonCode varchar(10) not null unique,
-	EmpId int not null,
+	EmpId int not null unique,
 	DealerId int not null,
-
-	FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId),
-	FOREIGN KEY (EmpId) REFERENCES Employee(EmployeeId),
 );
 
 CREATE TABLE Customer (
@@ -56,14 +57,9 @@ CREATE TABLE ConsultHistory (
 	DealerId int not null,
 	SalespersonId int not null,
 	CarId int not null,
-	Budget money not null,
-	ConsultDate date,
+	BudgetMillion money not null,
+	ConsultDate date not null,
 	Note text,
-
-	FOREIGN KEY (CustId) REFERENCES Customer(CustomerId),
-	FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId),
-	FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId),
-	FOREIGN KEY (CarId) REFERENCES Car(CarId),
 );
 
 CREATE TABLE TestDrive (
@@ -74,93 +70,73 @@ CREATE TABLE TestDrive (
 	CarId int not null,
 	Note text,
 	TestDate date,
-	Result int,
+	Result bit,
 	TestLocation int,
-
-	FOREIGN KEY (CustId) REFERENCES Customer(CustomerId),
-	FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId),
-	FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId),
-	FOREIGN KEY (CarId) REFERENCES Car(CarId),
-);
-
-CREATE TABLE LetterIntent (
-	LoiId int primary key identity(1,1),
-	AgreementId int not null,
-	FixedPrice money not null,
-	DiscountAmount int not null,
-	DownPayment money not null,
-	TaxAmount money not null,
 );
 
 CREATE TABLE Agreement (
 	AgreementId int primary key identity(1,1),
 	CustId int not null,
 	SalespersonId int not null,
-	CarId int not null,
-	LoiId int not null,
+	FixedPrice money not null,
+	DiscountRate int not null,
+	DownPayment money not null,
 	PaymentMethod varchar(10),
 	AgreementDate date,
-
-	FOREIGN KEY (CustId) REFERENCES Customer(CustomerId),
-	FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId),
-	FOREIGN KEY (CarId) REFERENCES Car(CarId),
+	IsPaymentFinished bit not null,
+	CreditId int,
 );
 
-ALTER TABLE LetterIntent
-ADD FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId);
+CREATE TABLE DealerCarList (
+	DealerCarId int primary key identity(1,1),
+	DealerId int not null,
+	ModelId int not null,
+	DealerAddedPrice money not null,
+	Stock int not null,
+);
 
-ALTER TABLE Agreement
-ADD FOREIGN KEY (LoiId) REFERENCES LetterIntent(LoiId);
+CREATE TABLE CarUnitAgreement (
+	Id int primary key identity(1,1),
+	CarId int not null,
+	AgreementId int not null,
+);
 
 CREATE TABLE Credit (
 	CreditId int primary key identity(1,1),
 	CustId int not null,
-	AgreementId int not null,
+	AgreementId int not null unique,
 	CreditNominal money not null,
-	TotalPeriodInMonth int not null,
+	Tenor int not null,
 	AmountPerMonth money not null,
-	CreditStatus bit not null,
-	IsFinished bit not null,
-
-	FOREIGN KEY (CustId) REFERENCES Customer(CustomerId),
-	FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId),
+	CreditStatus varchar(10) not null check (CreditStatus in('Active', 'Overdue', 'Finished')),
 );
 
 CREATE TABLE PaymentHistory (
 	Id int primary key identity(1,1),
 	AgreementId int not null,
 	PaymentDate date not null,
-	Amount money not null,
+	AmountMillion money not null,
 	CreditId int,
 	PaymentCount int,
-
-	FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId),
+	Notes text,
 );
 
 CREATE TABLE WarrantyRegistration (
-	WarrantyId INT PRIMARY KEY IDENTITY(1,1),
-	CarId int not null,
-	PurchaseDate DATE,
-	WarrantyPeriod DATE NOT NULL,
+	WarrantyId int primary key identity(1,1),
+	CarId int not null unique,
+	PurchaseDate date,
+	ExpiredDate date not null,
 );
 
-ALTER TABLE Car
-ADD FOREIGN KEY (WarrantyId) REFERENCES WarrantyRegistration(WarrantyId);
-
-ALTER TABLE WarrantyRegistration
-ADD FOREIGN KEY (CarId) REFERENCES Car(CarId);
-
 CREATE TABLE WarrantyClaim (
-	ClaimId INT PRIMARY KEY IDENTITY(1,1),
-	ServiceCenter VARCHAR(20),
-	RepairDate DATE,
-	CostCovered MONEY,
-	ClaimStatus VARCHAR(10),
-	IssueReported TEXT,
-	CustomerId INT NOT NULL,
-	WarrantyId INT NOT NULL,
-
-	FOREIGN KEY (WarrantyId) REFERENCES WarrantyRegistration(WarrantyId),
+	ClaimId int primary key identity(1,1),
+	ServiceId int not null,
+	RepairDate date not null,
+	CostCovered money,
+	ClaimStatus varchar(12),
+	IssueReported text,
+	CustomerId int not null,
+	WarrantyId int not null,
 );
 
 CREATE TABLE CarMaintenanceStatus (
@@ -171,9 +147,6 @@ CREATE TABLE CarMaintenanceStatus (
 	EngineStatus bit, -- healthy or not healthy
 	StnkNum varchar(20),
 	BpkpNum varchar(20),
-
-	FOREIGN KEY (CarId) REFERENCES Car(CarId),
-	FOREIGN KEY (CustId) REFERENCES Customer(CustomerId),
 );
 
 CREATE TABLE CarService (
@@ -190,7 +163,80 @@ CREATE TABLE ServiceAppointment (
 	ServiceDate date not null,
 	ProblemDesc varchar(20) not null,
 	Feedback text,
-
-	FOREIGN KEY (CarId) REFERENCES Car(CarId),
-	FOREIGN KEY (ServiceId) REFERENCES CarService(ServiceId),
 );
+
+
+-- ADD FOREIGN KEY
+ALTER TABLE CarUnit
+ADD FOREIGN KEY (ModelId) REFERENCES CarModel(ModelId);
+ALTER TABLE CarUnit
+ADD FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId);
+
+ALTER TABLE SalesPerson
+ADD FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId);
+ALTER TABLE SalesPerson
+ADD FOREIGN KEY (EmpId) REFERENCES Employee(EmployeeId);
+
+ALTER TABLE ConsultHistory
+ADD FOREIGN KEY (CustId) REFERENCES Customer(CustomerId);
+ALTER TABLE ConsultHistory
+ADD FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId);
+ALTER TABLE ConsultHistory
+ADD FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId);
+ALTER TABLE ConsultHistory
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+
+ALTER TABLE TestDrive
+ADD FOREIGN KEY (CustId) REFERENCES Customer(CustomerId);
+ALTER TABLE TestDrive
+ADD FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId);
+ALTER TABLE TestDrive
+ADD FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId);
+ALTER TABLE TestDrive
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+
+ALTER TABLE Agreement
+ADD FOREIGN KEY (CustId) REFERENCES Customer(CustomerId);
+ALTER TABLE Agreement
+ADD FOREIGN KEY (SalespersonId) REFERENCES SalesPerson(SalespersonId);
+
+ALTER TABLE DealerCarList
+ADD FOREIGN KEY (DealerId) REFERENCES Dealer(DealerId);
+ALTER TABLE DealerCarList
+ADD FOREIGN KEY (ModelId) REFERENCES CarModel(ModelId);
+
+ALTER TABLE CarUnitAgreement
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+ALTER TABLE CarUnitAgreement
+ADD FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId);
+
+ALTER TABLE Credit
+ADD FOREIGN KEY (CustId) REFERENCES Customer(CustomerId);
+ALTER TABLE Credit
+ADD FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId);
+
+ALTER TABLE PaymentHistory
+ADD FOREIGN KEY (AgreementId) REFERENCES Agreement(AgreementId);
+ALTER TABLE PaymentHistory
+ADD FOREIGN KEY (CreditId) REFERENCES Credit(CreditId);
+
+ALTER TABLE WarrantyRegistration
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+
+ALTER TABLE WarrantyClaim
+ADD FOREIGN KEY (WarrantyId) REFERENCES WarrantyRegistration(WarrantyId);
+
+ALTER TABLE CarMaintenanceStatus
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+ALTER TABLE CarMaintenanceStatus
+ADD FOREIGN KEY (CustId) REFERENCES Customer(CustomerId);
+
+ALTER TABLE ServiceAppointment
+ADD FOREIGN KEY (CarId) REFERENCES CarUnit(CarId);
+ALTER TABLE ServiceAppointment
+ADD FOREIGN KEY (ServiceId) REFERENCES CarService(ServiceId);
+
+-- Merge Credit and Agreement (or make it one to one) DONE
+-- Add tax for different dealer DONE
+-- Add 1 more table (junction) to facilitate buyer who will buy 2 cars or more (car, dealer, agreement/loi) DONE
+-- Fix Car and Dealer so it will add price and stock from dealer (could add 1 junction table) DONE
